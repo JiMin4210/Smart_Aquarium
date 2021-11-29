@@ -202,7 +202,7 @@ void setup() {
     WiFi.begin(ssid, password);
     Serial.println("");
 
-    // Wait for connection
+    // Wait for connection -OLED 사용 불가
     // display.init();
     // display.setFont(ArialMT_Plain_16);
     // display.flipScreenVertically();
