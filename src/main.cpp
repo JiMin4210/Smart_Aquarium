@@ -70,11 +70,11 @@ char myWeb_01[] =""
     "<body><center><p style='font-weight:700; font-size:100px; font-family:Nanum Pen Script; color:rgb(54, 121, 184); '>AQUARIUM WEB</p>"
     "<div><div class='left'><table border='3' width ='500' height='300' align = 'center'>"
     "<th></th><th align = 'center' style='color:black'>Board_A</th><th align = 'center' style='color:black'>Board_B</th>"
-    "<tr align = 'center' style='font-weight:700; color: black;'><td>현재 온도</td><td>%.1f</td><td>%.1f</td></tr>"
+    "<tr bgcolor=skyblue align = 'center' style='font-weight:700; color: black;'><td>현재 온도</td><td>%.1f</td><td>%.1f</td></tr>"
     "<tr align = 'center' style='font-weight:700; color: black; '><td>임계 온도</td><td>%.1f</td><td>%.1f</td></tr>"
-    "<tr align = 'center' style='font-weight:700; color: black;'><td>현재 오염도</td><td>%d</td><td>%d</td></tr>"
+    "<tr bgcolor=skyblue align = 'center' style='font-weight:700; color: black;'><td>현재 오염도</td><td>%d</td><td>%d</td></tr>"
     "<tr align = 'center' style='font-weight:700; color: black;'><td>임계 오염도</td><td>%d</td><td>%d</td></tr>"
-    "<tr align = 'center' style='font-weight:700; color: black;'><td>현재 조도값</td><td>%d</td><td>%d</td></tr>";
+    "<tr bgcolor=skyblue align = 'center' style='font-weight:700; color: black;'><td>현재 조도값</td><td>%d</td><td>%d</td></tr>";
     
 char myWeb_02[] =""
   "<tr align = 'center' style='font-weight:700; color: black;'><td>임계 조도값</td><td>%d(%s)</td><td>%d(%s)</td></tr>"
@@ -189,6 +189,7 @@ void setup() {
     EEPROM.begin(EEPROM_LENGTH);
     pinMode(RESET_PIN, INPUT_PULLUP);
     attachInterrupt(RESET_PIN, GPIO0, FALLING);
+    display.init(); // 처음 화면 초기화
 
     while(!Serial);
     Serial.println();
