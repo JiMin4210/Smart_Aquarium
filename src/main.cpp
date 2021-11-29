@@ -9,7 +9,7 @@
 
 #include <PubSubClient.h> // mqtt 헤더
 
-#define NO_CAP 1
+#define NO_CAP 0
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
@@ -134,7 +134,7 @@ void ReadString(byte startAt, byte bufor) {
 void save(){
     Serial.println("button pressed");
     Serial.println(webServer.arg("ssid"));
-    Serial.println(webServer.arg("influxdb"));
+    Serial.println(webServer.arg("mqtt"));
     SaveString( 0, (webServer.arg("ssid")).c_str());
     SaveString(30, (webServer.arg("password")).c_str());
     SaveString(60, (webServer.arg("mqtt")).c_str()); //  MQTT 서버 받기 위해 추가한 부분
@@ -143,6 +143,7 @@ void save(){
 }
 
 void configWiFi() {
+
     IPAddress apIP(192, 168, 1, 1);
     
     WiFi.mode(WIFI_AP);
@@ -180,7 +181,7 @@ void load_config_wifi() {
 }
 
 IRAM_ATTR void GPIO0() {
-    SaveString(0, ""); // blank out the SSID field in EEPROM
+    SaveString(0, ""); // blank out the SSID field in EEPROM - ""넣어주면 이후 메모리 다 초기화인가보다
     ESP.restart();
 }
 
@@ -189,7 +190,7 @@ void setup() {
     EEPROM.begin(EEPROM_LENGTH);
     pinMode(RESET_PIN, INPUT_PULLUP);
     attachInterrupt(RESET_PIN, GPIO0, FALLING);
-    display.init(); // 처음 화면 초기화
+    // display.init(); // 처음 화면 초기화
 
     while(!Serial);
     Serial.println();
@@ -202,10 +203,17 @@ void setup() {
     Serial.println("");
 
     // Wait for connection
+    // display.init();
+    // display.setFont(ArialMT_Plain_16);
+    // display.flipScreenVertically();
+    // display.drawString(0,0,ssid);
+    // display.drawString(0,14,"connecting"); // 연결중임을 OLED에 표시
     int i = 0;
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
+        // display.drawString(i*3+75,14,".");
+        // display.display();
         if(i++ > 15 && !NO_CAP) {
             configWiFi();
         }
@@ -252,14 +260,13 @@ void setup() {
     webServer.begin(); // 서버 시작
     Serial.println("HTTP server started");
 
-    // OLED - mDNS가 안돼서 OLED를 통해 IP주소를 받고 웹 접속
-    char OLED[16];
-    display.setFont(ArialMT_Plain_16);
-    display.init();
-    display.flipScreenVertically();
-    display.drawString(0,10,WiFi.localIP().toString());
-    display.display();
-    Serial.println("OLED OUTPUT IP");
+    // OLED - mDNS가 안돼서 OLED를 통해 IP주소를 받고 웹 접속 - OLED 사용 불가 (EEPROM이랑 동시사용 안됨)
+    // display.init();
+    // display.setFont(ArialMT_Plain_16);
+    // display.flipScreenVertically();
+    // display.drawString(0,10,WiFi.localIP().toString());
+    // display.display();
+    // Serial.println("OLED OUTPUT IP");
 
     Serial.println("Runtime Starting");  
 }
