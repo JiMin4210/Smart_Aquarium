@@ -9,7 +9,7 @@
 
 #include <PubSubClient.h> // mqtt 헤더
 
-#define NO_CAP 0
+#define NO_CAP 1
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
@@ -63,10 +63,11 @@ char myWeb_01[] =""
     "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>"
     "<link href='https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap' rel='stylesheet'>"
     "<style>body{background-image : url('https://vrthumb.clipartkorea.co.kr/2017/04/03/ti237a8402.jpg');background-repeat : no-repeat;background-size : cover;}"
-    "div{width: 50%%; height: 48px;}"
+    "@media(min-width:300px){div{width: 100%%; height: 60%%;}}@media(min-width:1000px){div{width: 90%%; height: 60%%;}}@media(min-width:1200px){div{width: 80%%; height: 60%%;}}"
+    "@media(min-width:1500px){div{width: 65%%; height: 60%%;}}@media(min-width:1820px){div{width: 50%%; height: 60%%;}}"
     "div.left {width: 50%%; float: left;box-sizing: border-box;}"
     "div.right {width: 50%%; float: right;box-sizing: border-box;}"
-    "div.parent{width: 77%%;height: 3px;}div.first {float: left;width:50%%;box-sizing: border-box;}div.second{float: right;width:50%%;box-sizing: border-box;}</style></head>"
+    "div.parent{width: 77%%;height: 10%%;}div.first {float: left;width:50%%;box-sizing: border-box;}div.second{float: right;width:50%%;box-sizing: border-box;}</style></head>"
     "<body><center><p style='font-weight:700; font-size:100px; font-family:Nanum Pen Script; color:rgb(54, 121, 184); '>AQUARIUM WEB</p>"
     "<div><div class='left'><table border='3' width ='500' height='300' align = 'center'>"
     "<th></th><th align = 'center' style='color:black'>Board_A</th><th align = 'center' style='color:black'>Board_B</th>"
