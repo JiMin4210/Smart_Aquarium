@@ -170,7 +170,7 @@ void setup() {
             Serial.println("connected");
             Serial.println("-------Sub Start-------");
             String topic_evt[3] = {"temp","env","val"}; // 센서값 3가지 구독
-            String topic_cmd[4] = {"temp","env","val","bab"}; // 명령값 4가지 구독
+            String topic_cmd[5] = {"temp","env","val","bab","cycle"}; // 명령값 4가지 구독
 
              for(int x = 0; x<3; x++) 
              {
@@ -180,7 +180,7 @@ void setup() {
                Serial.println(buf_evt.c_str());
              }
 
-             for(int x = 0; x<4; x++) 
+             for(int x = 0; x<5; x++) 
              {
                String buf_cmd = sub_topic_cmd;
                buf_cmd.replace("#",topic_cmd[x]);
@@ -235,9 +235,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
         else if(strstr(topic,"bab"))
             feed_num++; // 먹이준 회수 1회 증가
         else if(strstr(topic,"LED"))
-            strcpy(LED_status,buf);
+            strcpy(LED_status,buf);   
+        else if(strstr(topic,"cycle"))
+            feed_cycle = atoi(buf); 
       }
     }
 }
+
+
 
 
