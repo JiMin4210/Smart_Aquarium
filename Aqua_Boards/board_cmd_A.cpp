@@ -8,7 +8,7 @@
 
 #include <PubSubClient.h> // mqtt 헤더
 
-#define NO_CAP 0
+#define NO_CAP 1
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
@@ -43,7 +43,9 @@ char *status;
 char *status_color[3] = {"green","yellow","red"}; // 3가지 상태 존재.
 char LED_status[4] = {"OFF"};
 
-String sub_topic_evt = "deviceid/Board_A/evt/#";
+void callback(char* topic, byte* payload, unsigned int length);
+
+String sub_topic_evt = "deviceid/Board_A/evt/#"; // 보드 B에 복사할 때 꼭 바꾸기
 String sub_topic_cmd = "deviceid/Board_A/cmd/#";
 
 String responseHTML = ""
@@ -91,7 +93,7 @@ void configWiFi() {
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("2017146010");     // change this to your portal SSID
+    WiFi.softAP("cmd_board_A");     // 보드 B에 복사할 때 꼭 바꾸기
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -157,20 +159,17 @@ void setup() {
     Serial.print("IP address: "); Serial.println(WiFi.localIP());
     Serial.print("mqtt address: "); Serial.println(mqtt);
 
-    //DNS
-    dnsServer.start(DNS_PORT, "*", WiFi.localIP());
-
     // mqtt
     client.setServer(mqtt, mqttPort);
     client.setCallback(callback);
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("control_board")) {
+        if (client.connect("cmd_board_A")) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
             Serial.println("-------Sub Start-------");
             String topic_evt[3] = {"temp","env","val"}; // 센서값 3가지 구독
-            String topic_cmd[4] = {"temp","env","val","bab"}; // 명령값 4가지 구독
+            String topic_cmd[5] = {"temp","env","val","bab","cycle"}; // 명령값 4가지 구독
 
              for(int x = 0; x<3; x++) 
              {
@@ -180,7 +179,7 @@ void setup() {
                Serial.println(buf_evt.c_str());
              }
 
-             for(int x = 0; x<4; x++) 
+             for(int x = 0; x<5; x++) 
              {
                String buf_cmd = sub_topic_cmd;
                buf_cmd.replace("#",topic_cmd[x]);
@@ -234,10 +233,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
             critical_env = atoi(buf);
         else if(strstr(topic,"bab"))
             feed_num++; // 먹이준 회수 1회 증가
-        
-        // merge - check
         else if(strstr(topic,"LED"))
-            strcpy(LED_status,buf);
+            strcpy(LED_status,buf);   
+        else if(strstr(topic,"cycle"))
+            feed_cycle = atoi(buf); 
       }
     }
 }

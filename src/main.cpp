@@ -15,8 +15,8 @@
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "U+Net9B20";
-  char                password[30] = "DD6B001103";
+  char                ssid[30] = "Phone";
+  char                password[30] = "1234567890";
   char                mqtt[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
@@ -87,7 +87,7 @@ char myWeb_02[] =""
     "<form action='/Save_Info'>"
     "<p style='font-weight:900'>수족관 제어 값 설정</p>"
     "<label><input type='text' name='temp' placeholder='임계 온도' onblur='this.value=removeSpaces(this.value);'> </label>"
-    "<label><input type='text' name='bab' placeholder='먹이 주는 주기(시간 단위)'> </label><p></p>"
+    "<label><input type='text' name='cycle' placeholder='먹이 주는 주기(시간 단위)'> </label><p></p>"
     "<label><input type='text' name='env' placeholder='임계 오염도'> </label>"
     "<label><input type='text' name='val' placeholder='임계 조도센서'> </label><p></p>"
     "<div class='parent'><div class='first'>"
@@ -342,12 +342,12 @@ void Save_Info(){
     client.publish(buf.c_str(),web_arg.c_str());
   }
 
-  web_arg = webServer.arg("bab");
+  web_arg = webServer.arg("cycle");
   if(web_arg != NULL)    
   {
     String buf = pub;
     feed_cycle[board_num] = atoi(web_arg.c_str()); // 밥주는 주기
-    buf.replace("#","bab");
+    buf.replace("#","cycle");
     Serial.println(buf);
     client.publish(buf.c_str(),web_arg.c_str());
   }
@@ -411,6 +411,8 @@ String web_new()
   return message;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 
 
