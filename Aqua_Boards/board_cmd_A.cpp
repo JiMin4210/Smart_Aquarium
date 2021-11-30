@@ -234,10 +234,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
             critical_env = atoi(buf);
         else if(strstr(topic,"bab"))
             feed_num++; // 먹이준 회수 1회 증가
+
         else if(strstr(topic,"LED"))
             strcpy(LED_status,buf);   
         else if(strstr(topic,"cycle"))
             feed_cycle = atoi(buf); 
+
       }
     }
 }
