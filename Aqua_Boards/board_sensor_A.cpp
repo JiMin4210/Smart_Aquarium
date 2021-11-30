@@ -10,7 +10,7 @@
 
 #include <PubSubClient.h> // mqtt 헤더
 
-#define NO_CAP 0
+#define NO_CAP 1
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
@@ -27,7 +27,8 @@ char                eRead[30];
 const int           mqttPort = 1883;
 const byte DNS_PORT = 53;
 
-WiFiClient espClient;
+WiFiClient espClient; // pub sub용 클라이언트
+WiFiClient htpClient; // influxdb용 클라이언트
 PubSubClient client(espClient);
 ESP8266WebServer    webServer(80);
 DNSServer dnsServer;
@@ -38,9 +39,9 @@ float temp; // 현재 온도
 int env; // 현재 오염도
 int val; // 조도센서 값
 
-String pub_topic[3] = {"deviceid/Board_A/cmd/temp",
-                    "deviceid/Board_A/cmd/env",
-                    "deviceid/Board_A/cmd/val"};
+String pub_topic[3] = {"deviceid/Board_A/evt/temp", 
+                    "deviceid/Board_A/evt/env",
+                    "deviceid/Board_A/evt/val"}; // 보드 B에 복사할 때 꼭 바꾸기
 
 
 String responseHTML = ""
@@ -88,7 +89,7 @@ void configWiFi() {
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("2017146010");     // change this to your portal SSID
+    WiFi.softAP("sensor_Board_A");     // 보드 B에 복사할 때 꼭 바꾸기
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -159,7 +160,7 @@ void setup() {
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("control_board")) {
+        if (client.connect("sensor_board_A")) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
         } else {
             Serial.print("failed with state "); Serial.println(client.state());
@@ -167,9 +168,9 @@ void setup() {
         }
     }
 
-    char buf[40]; // 전체 url 받을 버퍼
+    char buf[50]; // 전체 url 받을 버퍼
     sprintf(buf,"http://%s:8086/write?db=teamdb",mqtt_influxdb);
-    http.begin(espClient, buf);
+    http.begin(htpClient, buf);
 
     //여기부터 센서 관련 설정
 
@@ -177,7 +178,7 @@ void setup() {
 }
 
 void loop() {
-    //5초정도에 한번씩 센서 read 후 전송하게
+    //5초정도에 한번씩 센서 read 후 전송하게 - 4초 이상 정도가 influxdb 전송오류 안남.
 
     // mqtt 데이터 전송
     char buf[10];
@@ -193,12 +194,13 @@ void loop() {
     // influxdb에 데이터 보내는 과정
     http.addHeader("Content-Type","text/plain"); 
     char post_d[100];
-    sprintf(post_d,"info,host=Board_A temp_A=%.1f,env_A=%d,val_A=%d", temp, env, val);
+    sprintf(post_d,"info,host=Board_A temp_A=%.1f,env_A=%d,val_A=%d", temp, env, val); // 보드 B에 복사할 때 꼭 바꾸기
     int httpCode = http.POST(post_d);
     String payload = http.getString();
     Serial.println(httpCode);
     Serial.println(payload);
     http.end();
+    delay(4000);
 }
 
 
