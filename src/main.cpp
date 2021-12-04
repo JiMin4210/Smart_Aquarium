@@ -37,6 +37,7 @@ void handleRoot();
 void handleNotFound();
 void Save_Info();
 void Bab();
+void Photo();
 String web_new();
 
 #define BOARD_NUM 2
@@ -52,10 +53,17 @@ int feed_cycle[BOARD_NUM]; // 먹이 주는 주기
 char *status[BOARD_NUM];
 char *status_color[3] = {"green","yellow","red"}; // 3가지 상태 존재.
 char LED_status[BOARD_NUM][4] = {"OFF","OFF"};
-char photo_url[2][50] = {"/","/"}; // 사진 url을 담는 용도 (올라온 사진이 없다면 그저 새로고침이 됨)
+char photo_url[2][80] = {"/","/"}; // 사진 url을 담는 용도 (올라온 사진이 없다면 그저 새로고침이 됨)
 
 String sub_topic[2] = {"deviceid/Board_A/evt/#","deviceid/Board_B/evt/#"};
 String pub_topic[2] = {"deviceid/Board_A/cmd/#","deviceid/Board_B/cmd/#"};
+
+char photo[] = "" // 값 최신화를 하지 않고도 최신 사진을 바로 볼수 있게 한 것
+"<!DOCTYPE html><html><head>"
+"<title>META Tag  Refresh</title>"
+"<meta http-equiv='content-type' content='text/html; charset=euc-kr'>"
+"<meta http-equiv='refresh' content='0; url=%s'></head>";
+
 
 char myWeb_01[] =""
     "<!DOCTYPE html><html>"
@@ -104,9 +112,9 @@ char myWeb_02[] =""
     "<div class='second'><p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' name='Board' value='Feed_B'></p> </div></div></form>";
    
  char myWeb_03[] =""  
-    "<p> </p><div class='parent'><div class='first'><form action='%s'>"
-    "<p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' value='Photo_A'></p></div></form>"
-    "<div class='second'><form action='%s'><p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' value='Photo_B'></p></form></div></div>"
+    "<p> </p><div class='parent'><div class='first'><form action='/Photo'>"
+    "<p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' name='Photo' value='Photo_A'></p></div></form>"
+    "<div class='second'><form action='/Photo'><p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' name='Photo' value='Photo_B'></p></form></div></div>"
      "</div></div></center></body>"
     "<script>function removeSpaces(string) {return string.split(' ').join('');}</script></html>";
 
@@ -264,6 +272,7 @@ void setup() {
     webServer.on("/", handleRoot);
     webServer.on("/Save_Info",Save_Info);
     webServer.on("/Bab",Bab);
+    webServer.on("/Photo",Photo);
     webServer.onNotFound(handleNotFound);
     webServer.begin(); // 서버 시작
     Serial.println("HTTP server started");
@@ -286,7 +295,7 @@ void loop() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-    char buf[50] = {0,};
+    char buf[80] = {0,};
     Serial.println(topic);
     for(int i = 0; i<length; i++)
       buf[i] = (char)payload[i];
@@ -401,6 +410,18 @@ void handleNotFound(){
   webServer.send(404,"text/html",message);
 }
 
+void Photo(){
+  char buf[1000] = {0,};
+  int board_num = 0;
+  if(!strcmp(webServer.arg("Photo").c_str(),"Photo_B")) // 보드 선택
+    board_num = 1;
+
+
+  sprintf(buf,photo,photo_url[board_num]);
+  
+  webServer.send(200,"text/html", buf);
+}
+
 String web_new()
 {
   for(int i = 0; i<2; i++)
@@ -417,7 +438,7 @@ String web_new()
   String message = String(buf);                                                                                                       // %까지 전달하기 위해선 %%를 써줘야함.
   sprintf(buf,myWeb_02,critical_val[0],LED_status[0],critical_val[1],LED_status[1],feed_cycle[0],feed_cycle[1],feed_num[0],feed_num[1],status[0],status[1]); 
   message += String(buf); 
-  sprintf(buf,myWeb_03,photo_url[0],photo_url[1]); 
+  sprintf(buf,myWeb_03); 
   message += String(buf);                                                                                                         
   return message;
 }
