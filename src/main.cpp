@@ -15,8 +15,8 @@
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "U+Net9B20";
-  char                password[30] = "DD6B001103";
+  char                ssid[30] = "Phone";
+  char                password[30] = "1234567890";
   char                mqtt[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
@@ -52,7 +52,7 @@ int feed_num[BOARD_NUM]; // 먹이 준 회수
 int feed_cycle[BOARD_NUM]; // 먹이 주는 주기
 char *status[BOARD_NUM];
 char *status_color[3] = {"green","yellow","red"}; // 3가지 상태 존재.
-char LED_status[BOARD_NUM][4] = {"OFF","OFF"};
+char LED_status[BOARD_NUM][4] = {"0","0"};
 char photo_url[2][80] = {"/","/"}; // 사진 url을 담는 용도 (올라온 사진이 없다면 그저 새로고침이 됨)
 
 String sub_topic[2] = {"deviceid/Board_A/evt/#","deviceid/Board_B/evt/#"};
@@ -88,7 +88,7 @@ char myWeb_01[] =""
     "<tr bgcolor=skyblue align = 'center' style='font-weight:700; color: black;'><td>현재 조도값</td><td>%d</td><td>%d</td></tr>";
     
 char myWeb_02[] =""
-  "<tr align = 'center' style='font-weight:700; color: black;'><td>임계 조도값</td><td>%d(%s)</td><td>%d(%s)</td></tr>"
+  "<tr align = 'center' style='font-weight:700; color: black;'><td>임계 조도값(LED 상태)</td><td>%d(%s)</td><td>%d(%s)</td></tr>"
   "<tr align = 'center' style='font-weight:700; color: black;'><td>먹이 주는 주기(시간)</td><td>%d</td><td>%d</td></tr>"
     "<tr align = 'center' style='font-weight:700; color: black;'><td>먹이 준 회수</td><td>%d</td><td>%d</td></tr>"
     "<tr align = 'center' style='font-weight:700; color: black;'><td>현재 상태</td><td bgcolor='%s'></td><td bgcolor='%s'></td>" // 컬러 변경 필요
@@ -101,7 +101,7 @@ char myWeb_02[] =""
     "<label><input type='text' name='env' placeholder='임계 오염도'> </label>"
     "<label><input type='text' name='val' placeholder='임계 조도센서'> </label><p></p>"
     "<div class='parent'><div class='first'>"
-    "<label><select name='LED' style='WIDTH: 133pt; HEIGHT: 16pt'><option value='ON'>LED_ON</option><option value='OFF'>LED_OFF</option></select></label></div>"
+    "<label><input type='text' name='LED' placeholder='LED 패턴 0~4 (0 = off)'></select></label></div>"
     "<div class='second'>"
     "<label><select name='BOARD' style='WIDTH: 133pt; HEIGHT: 16pt' ><option value='BOARD_A'>BOARD_A</option><option value='BOARD_B'>BOARD_B</option></select> </label></div></div>"
     "<p></p><div class='parent'><div class='first'>"
@@ -159,12 +159,16 @@ void save(){
 }
 
 void configWiFi() {
-
+    display.init();
+    display.setFont(ArialMT_Plain_16);
+    display.flipScreenVertically();
+    display.drawString(0,10,"Captive potal"); // 연결중임을 OLED에 표시
+    display.display();
     IPAddress apIP(192, 168, 1, 1);
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("2017146010");     // change this to your portal SSID
+    WiFi.softAP("Aquarium_cap");     // change this to your portal SSID
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -206,7 +210,7 @@ void setup() {
     EEPROM.begin(EEPROM_LENGTH);
     pinMode(RESET_PIN, INPUT_PULLUP);
     attachInterrupt(RESET_PIN, GPIO0, FALLING);
-    // display.init(); // 처음 화면 초기화
+    display.init(); // 처음 화면 초기화
 
     while(!Serial);
     Serial.println();
@@ -230,7 +234,7 @@ void setup() {
         Serial.print(".");
         display.drawString(i*3+75,14,".");
         display.display();
-        if(i++ > 15 && !NO_CAP) {
+        if(i++ > 100 && !NO_CAP) {
             configWiFi();
         }
     }
@@ -374,7 +378,7 @@ void Save_Info(){
   if(web_arg != NULL)    
   {
     String buf = pub;
-    strcpy(LED_status[board_num],web_arg.c_str()); // LED_ON_OFF 제어
+    strcpy(LED_status[board_num],web_arg.c_str()); // LED_ON_OFF 제어(패턴 제어 0 = off ,1~4 = LED패턴 설정)
     buf.replace("#","LED");
     Serial.println(buf);
     client.publish(buf.c_str(),web_arg.c_str());
@@ -432,7 +436,11 @@ String web_new()
     if(env[i]>critical_env[i])
       count++;
     status[i] = status_color[count];
+    if(!strcmp(LED_status[i],"0"))
+      strcpy(LED_status[i],"OFF");
   }
+  
+
   char buf[2500] = {0,};
   sprintf(buf,myWeb_01,temp[0],temp[1],critical_temp[0],critical_temp[1],env[0],env[1],critical_env[0],critical_env[1],val[0],val[1]);// 인수가 10개 이상?이면 잘 안들어가서 나눠줌
   String message = String(buf);                                                                                                       // %까지 전달하기 위해선 %%를 써줘야함.
