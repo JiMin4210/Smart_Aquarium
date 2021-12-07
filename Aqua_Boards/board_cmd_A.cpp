@@ -9,13 +9,14 @@
 #include <PubSubClient.h> // mqtt 헤더
 
 #define NO_CAP 1
+#define AB "B" // 보드 A, B 선택 - 보드 추가 시 바로 가능
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "U+Net9B20";
-  char                password[30] = "DD6B001103";
+  char                ssid[30] = "IoT518";
+  char                password[30] = "iot123456";
   char                mqtt[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
@@ -43,10 +44,13 @@ char *status;
 char *status_color[3] = {"green","yellow","red"}; // 3가지 상태 존재.
 char LED_status[4] = {"OFF"};
 
+unsigned long interval = 5000;
+unsigned long lastMillis = 0;
+
 void callback(char* topic, byte* payload, unsigned int length);
 
-String sub_topic_evt = "deviceid/Board_A/evt/#"; // 보드 B에 복사할 때 꼭 바꾸기
-String sub_topic_cmd = "deviceid/Board_A/cmd/#";
+String sub_topic_evt = "deviceid/Board_"AB"/evt/#"; // 보드 B에 복사할 때 꼭 바꾸기
+String sub_topic_cmd = "deviceid/Board_"AB"/cmd/#";
 
 String responseHTML = ""
     "<!DOCTYPE html><html><head><title>CaptivePortal</title></head><body><center>"
@@ -93,7 +97,7 @@ void configWiFi() {
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("cmd_board_A");     // 보드 B에 복사할 때 꼭 바꾸기
+    WiFi.softAP("cmd_Board_"AB);     // 보드 B에 복사할 때 꼭 바꾸기
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -165,7 +169,7 @@ void setup() {
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("cmd_board_A")) { // 보드 B에 복사할 때 꼭 바꾸기
+        if (client.connect("cmd_Board_"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
             Serial.println("-------Sub Start-------");
             String topic_evt[3] = {"temp","env","val"}; // 센서값 3가지 구독
@@ -204,6 +208,12 @@ void setup() {
 
 void loop() {
     client.loop();
+    unsigned long currentMillis = millis();
+
+    if(currentMillis - lastMillis >= interval ){
+        lastMillis = currentMillis;
+        
+    }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
