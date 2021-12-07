@@ -15,8 +15,8 @@
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "Phone";
-  char                password[30] = "1234567890";
+  char                ssid[30] = "U+Net9B20";
+  char                password[30] = "DD6B001103";
   char                mqtt[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
@@ -99,11 +99,12 @@ char myWeb_02[] =""
     "<label><input type='text' name='temp' placeholder='임계 온도' onblur='this.value=removeSpaces(this.value);'> </label>"
     "<label><input type='text' name='cycle' placeholder='먹이 주는 주기(시간 단위)'> </label><p></p>"
     "<label><input type='text' name='env' placeholder='임계 오염도'> </label>"
-    "<label><input type='text' name='val' placeholder='임계 조도센서'> </label><p></p>"
+    "<label><input type='text' name='val' placeholder='임계 조도센서'> </label>"
     "<div class='parent'><div class='first'>"
-    "<label><input type='text' name='LED' placeholder='LED 패턴 0~4 (0 = off)'></select></label></div>"
+    "<p><select name='LED' style='WIDTH: 133pt; HEIGHT: 16pt'><option value='0'>LED_OFF</option><option value='1'>LED 패턴 1</option>"
+    "<option value='2'>LED 패턴 2</option><option value='3'>LED 패턴 3</option><option value='4'>LED 패턴 4</option></select></select></p></div>"
     "<div class='second'>"
-    "<label><select name='BOARD' style='WIDTH: 133pt; HEIGHT: 16pt' ><option value='BOARD_A'>BOARD_A</option><option value='BOARD_B'>BOARD_B</option></select> </label></div></div>"
+    "<p><select name='BOARD' style='WIDTH: 133pt; HEIGHT: 16pt' ><option value='BOARD_A'>BOARD_A</option><option value='BOARD_B'>BOARD_B</option></select></p></div></div>"
     "<p></p><div class='parent'><div class='first'>"
     "<p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' value='값 저장'></p></div></form>"
     "<div class='second'><form action='/'><p><input type='submit' style='WIDTH: 133pt; HEIGHT: 30pt' value='값 최신화'></p></form></div></div>"
