@@ -11,6 +11,7 @@
 #include <PubSubClient.h> // mqtt 헤더
 
 #define NO_CAP 1
+#define AB "A" // 보드 A, B 선택 - 보드 추가 시 바로 가능
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
@@ -35,13 +36,13 @@ DNSServer dnsServer;
 HTTPClient http;
 
 
-float temp; // 현재 온도
-int env; // 현재 오염도
-int val; // 조도센서 값
+float temp = 2; // 현재 온도
+int env = 2; // 현재 오염도
+int val = 2; // 조도센서 값
 
-String pub_topic[3] = {"deviceid/Board_A/evt/temp", 
-                    "deviceid/Board_A/evt/env",
-                    "deviceid/Board_A/evt/val"}; // 보드 B에 복사할 때 꼭 바꾸기
+String pub_topic[3] = {"deviceid/Board_"AB"/evt/temp", 
+                    "deviceid/Board_"AB"/evt/env",
+                    "deviceid/Board_"AB"/evt/val"}; // 보드 B에 복사할 때 꼭 바꾸기
 
 
 String responseHTML = ""
@@ -89,7 +90,7 @@ void configWiFi() {
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("sensor_Board_A");     // 보드 B에 복사할 때 꼭 바꾸기
+    WiFi.softAP("sensor_Board_"AB);     // 보드 B에 복사할 때 꼭 바꾸기
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -160,7 +161,7 @@ void setup() {
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("sensor_board_A")) { // 보드 B에 복사할 때 꼭 바꾸기
+        if (client.connect("sensor_Board_"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
         } else {
             Serial.print("failed with state "); Serial.println(client.state());
@@ -194,7 +195,7 @@ void loop() {
     // influxdb에 데이터 보내는 과정
     http.addHeader("Content-Type","text/plain"); 
     char post_d[100];
-    sprintf(post_d,"info,host=Board_A temp_A=%.1f,env_A=%d,val_A=%d", temp, env, val); // 보드 B에 복사할 때 꼭 바꾸기
+    sprintf(post_d,"info,host=Board_"AB" temp_"AB"=%.1f,env_"AB"=%d,val_"AB"=%d", temp, env, val); // 보드 B에 복사할 때 꼭 바꾸기
     int httpCode = http.POST(post_d);
     String payload = http.getString();
     Serial.println(httpCode);
