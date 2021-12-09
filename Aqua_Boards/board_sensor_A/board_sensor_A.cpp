@@ -6,51 +6,47 @@
 #include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 
+#include <ESP8266HTTPClient.h> // influx 위한 헤더
+
 #include <PubSubClient.h> // mqtt 헤더
 
+// sensor header
+#include <TempSensor.h>
+
 #define NO_CAP 1
-#define AB "B" // 보드 A, B 선택 - 보드 추가 시 바로 가능
+#define AB "A" // 보드 A, B 선택 - 보드 추가 시 바로 가능
 
 #define             EEPROM_LENGTH 1024
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "IoT518";
-  char                password[30] = "iot123456";
-  char                mqtt[30] = "54.90.184.120"; 
+  char                ssid[30] = "U+NetD1B8"; //IoT518
+  char                password[30] = "DDAD007081"; // iot123456
+  char                mqtt_influxdb[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
   char                password[30];
-  char                mqtt[30]; // 60번지까지 eeprom을 읽게 한다. 30칸 추가이용 read string + MQTT 서버 주소를 변수에 넣어줘야함.
+  char                mqtt_influxdb[30]; // 60번지까지 eeprom을 읽게 한다. 30칸 추가이용 read string + MQTT 서버 주소를 변수에 넣어줘야함.
 #endif
 const int           mqttPort = 1883;
 const byte DNS_PORT = 53;
 
-WiFiClient espClient;
+WiFiClient espClient; // pub sub용 클라이언트
+WiFiClient htpClient; // influxdb용 클라이언트
 PubSubClient client(espClient);
 ESP8266WebServer    webServer(80);
 DNSServer dnsServer;
+HTTPClient http;
 
 
-float temp; // 현재 온도
-float critical_temp; // 임계 온도
-int env; // 현재 오염도
-int critical_env; // 임계 오염도
-int val; // 조도센서 값
-int critical_val; // 임계 조도
-int feed_num; // 먹이 준 회수
-int feed_cycle; // 먹이 주는 주기
-char *status;
-char *status_color[3] = {"green","yellow","red"}; // 3가지 상태 존재.
-char LED_status[4] = {"OFF"};
+float temp = 2; // 현재 온도
+//int env = 2; // 현재 오염도
+int val = 2; // 조도센서 값
 
-unsigned long interval = 5000;
-unsigned long lastMillis = 0;
+String pub_topic[3] = {"deviceid/Board_"AB"/evt/temp", 
+                    "deviceid/Board_"AB"/evt/env",
+                    "deviceid/Board_"AB"/evt/val"}; // 보드 B에 복사할 때 꼭 바꾸기
 
-void callback(char* topic, byte* payload, unsigned int length);
-
-String sub_topic_evt = "deviceid/Board_"AB"/evt/#"; // 보드 B에 복사할 때 꼭 바꾸기
-String sub_topic_cmd = "deviceid/Board_"AB"/cmd/#";
 
 String responseHTML = ""
     "<!DOCTYPE html><html><head><title>CaptivePortal</title></head><body><center>"
@@ -58,7 +54,7 @@ String responseHTML = ""
     "<form action='/save'>" // get 방식으로 url/save?name=value&password=value 보냄 (이후 arg로 받아낸다.) 
     "<p'><input type='text' name='ssid' placeholder='SSID' onblur='this.value=removeSpaces(this.value);'></p>"
     "<p><input type='text' name='password' placeholder='WLAN Password'></p>"
-    "<p><input type='text' name='mqtt' placeholder='MQTT Server'></p>" // MQTT 서버 받기 위해 추가한 부분
+    "<p><input type='text' name='mqtt' placeholder='MQTT_Influxdb Server'></p>" // MQTT 서버 받기 위해 추가한 부분
     "<p><input type='submit' value='Submit'></p></form>"
     "<p style='font-weight:700'>WiFi & MQTT Setup Page</p></center></body>" // 글자 굵기, 텍스트 변경
     "<script>function removeSpaces(string) {"
@@ -97,7 +93,7 @@ void configWiFi() {
     
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("cmd_Board_"AB);     // 보드 B에 복사할 때 꼭 바꾸기
+    WiFi.softAP("sensor_Board_"AB);     // 보드 B에 복사할 때 꼭 바꾸기
     
     dnsServer.start(DNS_PORT, "*", apIP);
 
@@ -125,7 +121,7 @@ void load_config_wifi() {
         ReadString(30, 30);
         strcpy(password, eRead);
         ReadString(60, 30); // MQTT 서버 받기 위해 추가한 부분
-        strcpy(mqtt, eRead);
+        strcpy(mqtt_influxdb, eRead);
     }
 }
 
@@ -161,94 +157,59 @@ void setup() {
     }
     Serial.print("Connected to "); Serial.println(ssid);
     Serial.print("IP address: "); Serial.println(WiFi.localIP());
-    Serial.print("mqtt address: "); Serial.println(mqtt);
+    Serial.print("mqtt_influxdb address: "); Serial.println(mqtt_influxdb);
 
     // mqtt
-    client.setServer(mqtt, mqttPort);
-    client.setCallback(callback);
+    client.setServer(mqtt_influxdb, mqttPort);
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("cmd_Board_"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
+        if (client.connect("sensor_Board_"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
-            Serial.println("-------Sub Start-------");
-            String topic_evt[3] = {"temp","env","val"}; // 센서값 3가지 구독
-            String topic_cmd[5] = {"temp","env","val","bab","cycle"}; // 명령값 4가지 구독
-
-             for(int x = 0; x<3; x++) 
-             {
-               String buf_evt = sub_topic_evt;
-               buf_evt.replace("#",topic_evt[x]);
-               client.subscribe(buf_evt.c_str());
-               Serial.println(buf_evt.c_str());
-             }
-
-             for(int x = 0; x<5; x++) 
-             {
-               String buf_cmd = sub_topic_cmd;
-               buf_cmd.replace("#",topic_cmd[x]);
-               client.subscribe(buf_cmd.c_str());
-               Serial.println(buf_cmd.c_str());
-             }
-               
-            Serial.println("-------Sub End-------");
         } else {
             Serial.print("failed with state "); Serial.println(client.state());
             delay(2000);
         }
     }
-    // ------------------------------
-    // 센서 동작 관련 세팅하는 곳
 
+    char buf[50]; // 전체 url 받을 버퍼
+    sprintf(buf,"http://%s:8086/write?db=teamdb",mqtt_influxdb);
+    http.begin(htpClient, buf);
 
-    // ------------------------------
+    //여기부터 센서 관련 설정
 
     Serial.println("Runtime Starting");  
 }
 
 void loop() {
-    client.loop();
-    unsigned long currentMillis = millis();
+    //5초정도에 한번씩 센서 read 후 전송하게 - 4초 이상 정도가 influxdb 전송오류 안남.
 
-    if(currentMillis - lastMillis >= interval ){
-        lastMillis = currentMillis;
-        
-    }
+    val = analogRead(A0); //조도 
+    Serial.println(val); // 조도 출력
+    tempcheck (&temp); //온도
+
+    // mqtt 데이터 전송
+    char buf[10];
+    sprintf(buf,"%.1f",temp); // 온도 문자열로 변환
+    client.publish(pub_topic[0].c_str(),buf);
+    //sprintf(buf,"%d",env); // 오염도 문자열로 변환
+    //client.publish(pub_topic[1].c_str(),buf);
+    sprintf(buf,"%d",val); // 밝기 문자열로 변환
+    client.publish(pub_topic[2].c_str(),buf);
+    
+
+
+    // influxdb에 데이터 보내는 과정
+    http.addHeader("Content-Type","text/plain"); 
+    char post_d[100];
+    sprintf(post_d,"info,host=Board_"AB" temp_"AB"=%.1f,val_"AB"=%d", temp, val); // 보드 B에 복사할 때 꼭 바꾸기
+    int httpCode = http.POST(post_d);
+    String payload = http.getString();
+    Serial.println(httpCode);
+    Serial.println(payload);
+    http.end();
+    delay(4000);
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
-    char buf[10] = {0,};
-    Serial.println(topic);
-    for(int i = 0; i<length; i++)
-      buf[i] = (char)payload[i];
-
-    if(buf[0] != NAN)
-    {     
-      if(strstr(topic,"evt")) // 이벤트 관련 토픽이라면
-      {
-        if(strstr(topic,"temp"))
-            temp = atof(buf);
-        else if(strstr(topic,"val"))
-            val = atoi(buf);
-        else if(strstr(topic,"env"))
-            env = atoi(buf);
-      }
-      if(strstr(topic,"cmd")) // 명령 관련 토픽이라면
-      {
-        if(strstr(topic,"temp"))
-            critical_temp = atof(buf);
-        else if(strstr(topic,"val"))
-            critical_val = atoi(buf);
-        else if(strstr(topic,"env"))
-            critical_env = atoi(buf);
-        else if(strstr(topic,"bab"))
-            feed_num++; // 먹이준 회수 1회 증가
-        else if(strstr(topic,"LED"))
-            strcpy(LED_status,buf);   
-        else if(strstr(topic,"cycle"))
-            feed_cycle = atoi(buf); 
-      }
-    }
-}
 
 

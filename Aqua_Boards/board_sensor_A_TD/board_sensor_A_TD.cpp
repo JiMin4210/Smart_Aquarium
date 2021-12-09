@@ -10,6 +10,9 @@
 
 #include <PubSubClient.h> // mqtt 헤더
 
+// sensor header
+#include <Turbidity.h>
+
 #define NO_CAP 1
 #define AB "A" // 보드 A, B 선택 - 보드 추가 시 바로 가능
 
@@ -17,8 +20,8 @@
 #define             RESET_PIN 0
 char                eRead[30];
 #if NO_CAP == 1
-  char                ssid[30] = "U+Net9B20";
-  char                password[30] = "DD6B001103";
+  char                ssid[30] = "U+NetD1B8"; //IoT518
+  char                password[30] = "DDAD007081"; // iot123456
   char                mqtt_influxdb[30] = "54.90.184.120"; 
 #else
   char                ssid[30];
@@ -36,9 +39,9 @@ DNSServer dnsServer;
 HTTPClient http;
 
 
-float temp = 2; // 현재 온도
+//float temp = 2; // 현재 온도
 int env = 2; // 현재 오염도
-int val = 2; // 조도센서 값
+//int val = 2; // 조도센서 값
 
 String pub_topic[3] = {"deviceid/Board_"AB"/evt/temp", 
                     "deviceid/Board_"AB"/evt/env",
@@ -161,7 +164,7 @@ void setup() {
 
     while (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        if (client.connect("sensor_Board_"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
+        if (client.connect("sensor_Board_TD"AB)) { // 보드 B에 복사할 때 꼭 바꾸기
             Serial.println("connected");
         } else {
             Serial.print("failed with state "); Serial.println(client.state());
@@ -181,21 +184,23 @@ void setup() {
 void loop() {
     //5초정도에 한번씩 센서 read 후 전송하게 - 4초 이상 정도가 influxdb 전송오류 안남.
 
+    turcheck(&env);
+
     // mqtt 데이터 전송
     char buf[10];
-    sprintf(buf,"%.1f",temp); // 온도 문자열로 변환
-    client.publish(pub_topic[0].c_str(),buf);
+    //sprintf(buf,"%.1f",temp); // 온도 문자열로 변환
+    //client.publish(pub_topic[0].c_str(),buf);
     sprintf(buf,"%d",env); // 오염도 문자열로 변환
     client.publish(pub_topic[1].c_str(),buf);
-    sprintf(buf,"%d",val); // 밝기 문자열로 변환
-    client.publish(pub_topic[2].c_str(),buf);
+    //sprintf(buf,"%d",val); // 밝기 문자열로 변환
+    //client.publish(pub_topic[2].c_str(),buf);
     
 
 
     // influxdb에 데이터 보내는 과정
     http.addHeader("Content-Type","text/plain"); 
     char post_d[100];
-    sprintf(post_d,"info,host=Board_"AB" temp_"AB"=%.1f,env_"AB"=%d,val_"AB"=%d", temp, env, val); // 보드 B에 복사할 때 꼭 바꾸기
+    sprintf(post_d,"info,host=Board_"AB" env_"AB"=%d", env); // 보드 B에 복사할 때 꼭 바꾸기
     int httpCode = http.POST(post_d);
     String payload = http.getString();
     Serial.println(httpCode);
