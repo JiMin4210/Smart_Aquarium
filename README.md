@@ -25,7 +25,7 @@
 
 - "여러개의 수족관 제어 가능"
     > Web에서 수족관을 선택하면 **다른 수족관 또한 위의 모든 기능을 이용 가능**
-<p align="center"><img src="https://user-images.githubusercontent.com/90883534/215118601-372bfc5c-c6d1-46ea-a5f2-05d216961fd3.png" width="750" height="250"/></p>
+<p align="center"><img src="https://user-images.githubusercontent.com/90883534/215118601-372bfc5c-c6d1-46ea-a5f2-05d216961fd3.png" width="550" height="250"/></p>
 
 
 
