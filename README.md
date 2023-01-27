@@ -28,7 +28,7 @@
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215118601-372bfc5c-c6d1-46ea-a5f2-05d216961fd3.png" width="550" height="250"/></p>
 
 - **InfluxDB, Grafana**
-    > InfluxDB에 저장된 **오염도, 온도, 조도의 기록**이 Grafana를 통해 사용자가 **현재까지의 기록을 한눈에 볼 수 있음**
+    > InfluxDB에 저장된 **오염도, 온도, 조도 기록**이 Grafana를 통해 사용자가 **현재까지의 기록을 한눈에 볼 수 있음**
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215115389-b7312ed7-a2fb-4402-8f69-b8f20e945ffb.png" width="750" height="250"/></p>
 
 ## 🔧 시스템 구조
