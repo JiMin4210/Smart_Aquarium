@@ -32,7 +32,7 @@
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215115389-b7312ed7-a2fb-4402-8f69-b8f20e945ffb.png" width="750" height="250"/></p>
 
 ## 🔧 시스템 구조
-<p align="center"><img src="https://user-images.githubusercontent.com/90883534/215119180-7ba780f9-d2d3-440f-8baf-5e35324d1955.png" width="700" height="500"/></p>
+<p align="center"><img src="https://user-images.githubusercontent.com/90883534/215119180-7ba780f9-d2d3-440f-8baf-5e35324d1955.png" width="500" height="300"/></p>
 
 
 
