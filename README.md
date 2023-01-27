@@ -23,15 +23,16 @@
     > 임계 온도, 오염도를 초과 할 시 **초록색** -> **노랑색** -> **빨간색** 순서 **위험도에 따라 색이 변함**
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215115026-025acc4a-ef90-4d32-9c38-e0e82b8dbacd.png" width="750" height="250"/></p>
 
-- "여러개의 수족관 제어 가능"
+- **여러개의 수족관 제어 가능**
     > Web에서 수족관을 선택하면 **다른 수족관 또한 위의 모든 기능을 이용 가능**
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215118601-372bfc5c-c6d1-46ea-a5f2-05d216961fd3.png" width="550" height="250"/></p>
-
-
 
 - **InfluxDB, Grafana**
     > InfluxDB에 저장된 **오염도, 온도, 조도의 기록**이 Grafana를 통해 사용자가 **현재까지의 기록을 한눈에 볼 수 있음**
 <p align="center"><img src="https://user-images.githubusercontent.com/90883534/215115389-b7312ed7-a2fb-4402-8f69-b8f20e945ffb.png" width="750" height="250"/></p>
+
+## 🔧 시스템 구조
+<p align="center"><img src="https://user-images.githubusercontent.com/90883534/215119180-7ba780f9-d2d3-440f-8baf-5e35324d1955.png" width="700" height="500"/></p>
 
 
 
