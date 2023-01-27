@@ -15,6 +15,7 @@
 
 - **towerpro mg90s(서보 모터)**
     > 먹이를 주는 주기 설정 -> Esp8266 시간 변수를 통해 일정 시간 도달 시 서보 모터 작동
+    
     > Feed 버튼을 통해 원하는 수족관에 먹이 바로 제공
 <img src="https://user-images.githubusercontent.com/90883534/215114440-b4054a03-a73a-47bb-a208-a15508ce1ffd.png" width="900" height="300"/>
 
