@@ -10,6 +10,7 @@
 - Docker Container에 대한 이해와 활용
 - MQTT, InfluxDB, Grafana에 대한 이해
 - Web에 대한 이해 (HTML, HTTP - GET, POST)
+- config mode에 대한 이해
 - 팀을 이끌어가는 능력
 - 팀원과의 소통을 통한 협업 능력
 
